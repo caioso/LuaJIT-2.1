@@ -727,7 +727,7 @@ local map_op = {
   lfddx_3 =	"7c000646FRR",
   stvepx_3 =	"7c00064eVRR",
   srawi_3 =	"7c000670RR~A.",
-  sradi_3 =	"7c000674RR~H.",
+  sradi_3 =	"7c000674RR~f.",
   eieio_0 =	"7c0006ac",
   lfiwax_3 =	"7c0006aeFR0R",
   divdeuo_3 =	"7c000712RRR.",
@@ -789,7 +789,8 @@ local map_op = {
   rldimi_4 =	"7800000cRR~HM.",
   rldcl_4 =	"78000010RR~RM.",
   rldcr_4 =	"78000012RR~RM.",
-
+  sldi_3 =	"78000004RR~L",
+  srdi_3 =	"78000000RR~u",
   -- Primary opcode 56:
   lq_2 =	"e0000000R:D", -- NYI: displacement must be divisible by 8.
 
@@ -1636,7 +1637,27 @@ map_op[".template__"] = function(params, template, nparams)
     elseif p == "G" then
       op = op + parse_imm(params[n], 8, 12, 0, false); n = n + 1
     elseif p == "H" then
-      op = op + parse_shiftmask(params[n], true); n = n + 1
+      v = parse_imm(params[n], 6, 0, 0, false);
+      op = op + shl(band(v,31), 11)+shl(shr(v,5), 1);
+      n = n + 1;
+      --op = op + parse_shiftmask(params[n], true); n = n + 1
+    elseif p == "L" then
+      v = tonumber(params[n]);
+      z = 63 - v;
+      op = op + shl(band(v,31), 11)+shl(shr(v,5), 1);
+      msb = shr(band(z,32),5);
+      r = shl(band(z,31),1);
+      op = op + shl((msb + r), 5); n = n + 1;
+    elseif p == "u" then
+      v = tonumber(params[n]);
+      z = 64 - v;
+      op = op + shl(band(z,31), 11)+shl(shr(z,5), 1);
+      msb = shr(band(v,32),5);
+      r = shl(band(v,31),1);
+      op = op + shl((msb + r), 5); n = n + 1;
+    elseif p == "f" then
+      v = tonumber(params[n]);
+      op = op + shl(band(v,31), 11)+shl(shr(v,5), 1);
     elseif p == "M" then
       op = op + parse_shiftmask(params[n], false); n = n + 1
     elseif p == "J" or p == "K" then
