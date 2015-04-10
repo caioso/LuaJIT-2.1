@@ -345,7 +345,7 @@ static void asm_callx(ASMState *as, IRIns *ir)
   func = ir->op2; irf = IR(func);
   if (irf->o == IR_CARG) { func = irf->op1; irf = IR(func); }
   if (irref_isk(func)) {  /* Call to constant address. */
-    ci.func = (ASMFunction)(void *)(intptr_t)(irf->i);
+    ci.func = (ASMFunction)(intptr_t)(irf->i);
   } else {  /* Need a non-argument register for indirect calls. */
     RegSet allow = RSET_GPR & ~RSET_RANGE(RID_R0, REGARG_LASTGPR+1);
     Reg freg = ra_alloc1(as, func, allow);
@@ -529,7 +529,7 @@ static void asm_tvptr(ASMState *as, Reg dest, IRRef ref)
     /* Otherwise use g->tmptv to hold the TValue. */
     RegSet allow = rset_exclude(RSET_GPR, dest);
     Reg type;
-    emit_tai(as, PPCI_ADDI, dest, RID_JGL, (int32_t)offsetof(global_State, tmptv)-32768);
+    emit_tai(as, PPCI_ADDI, dest, RID_JGL, (int64_t)offsetof(global_State, tmptv)-32768);
     if (!irt_ispri(ir->t)) {
       Reg src = ra_alloc1(as, ref, allow);
       emit_setgl(as, src, tmptv.gcr);
